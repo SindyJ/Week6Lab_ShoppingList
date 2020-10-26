@@ -7,6 +7,7 @@ package servlets;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -25,14 +26,55 @@ public class ShoppingListServlet extends HttpServlet {
             throws ServletException, IOException {
         
         HttpSession session = request.getSession();
+        String action = request.getParameter("action"); 
         
-        getServletContext().getRequestDispatcher("/WEB-INF/register.jsp").forward(request, response);
+        if (action != null && action.equals("logout")) {
+            session.invalidate();
+            session = request.getSession();
+            getServletContext().getRequestDispatcher("/WEB-INF/register.jsp").forward(request, response);
+        }
+        if (session.getAttribute("username") != null) {  
+            getServletContext().getRequestDispatcher("/WEB-INF/shoppingList.jsp").forward(request, response);
+        }
+        else {
+            getServletContext().getRequestDispatcher("/WEB-INF/register.jsp").forward(request, response);
+        }    
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        getServletContext().getRequestDispatcher("/WEB-INF/shoppingList.jsp").forward(request, response);
+        
+        HttpSession session = request.getSession();
+        String action = request.getParameter("action");
+  
+        ArrayList<String> list = new ArrayList<>();
+        
+        if(action.equals("register")) {
+            String username = request.getParameter("username");
+            session.setAttribute("username", username);
+            response.sendRedirect("ShoppingList");
+        }
+        else if(action.equals("add")) {
+            
+            list = (ArrayList<String>) session.getAttribute("list");
+            if(list == null) {
+                list = new ArrayList<>();
+            }            
+            String item = request.getParameter("item");
+            list.add(item);
+            session.setAttribute("list", list);
+            response.sendRedirect("ShoppingList");
+        }
+        else if (action.equals("delete")) {
+            String deleteitem = request.getParameter("item");
+            list = (ArrayList<String>) session.getAttribute("list");
+            list.remove(deleteitem);
+            session.setAttribute("list", list);
+            response.sendRedirect("ShoppingList");
+            
+        }
+        
        
     }
 
